@@ -108,7 +108,7 @@ class StockTradingEnv(gym.Env):
         self._print(f"  Current stock holding: {self.state[index + self.stock_dim + 1]}", level=2)
         self._print(f"  Requested action: {action}", level=2)
 
-        sell_num_shares = 0  # Inicijaliziramo na 0
+        sell_num_shares = 0  # Initialize to 0
 
         if self.state[index + 2 * self.stock_dim + 1] != True:  # check if the stock is able to sell
             if self.state[index + self.stock_dim + 1] > 0:
@@ -130,7 +130,7 @@ class StockTradingEnv(gym.Env):
         self._print(f"  Current stock holding: {self.state[index + self.stock_dim + 1]}", level=2)
         self._print(f"  Requested action: {action}", level=2)
 
-        buy_num_shares = 0  # Inicijaliziramo na 0
+        buy_num_shares = 0  # Initialize to 0
 
         if self.state[index + 2 * self.stock_dim + 1] != True:  # check if the stock is able to buy
             if self.state[0] > self.state[index + 1] * action:  # check if cash is enough
@@ -154,32 +154,60 @@ class StockTradingEnv(gym.Env):
         return buy_num_shares
 
     def _calculate_reward(self, begin_total_asset, end_total_asset):
+        """
+        Calculates the custom reward based on two components:
+        1. Return rate (70% weight) - Measures the profit/loss relative to initial investment
+        2. Sharpe ratio (30% weight) - Measures risk-adjusted returns
+        
+        Args:
+            begin_total_asset: Total portfolio value at the start of the step
+            end_total_asset: Total portfolio value at the end of the step
+            
+        Returns:
+            float: Weighted combination of return rate and Sharpe ratio, scaled by reward_scaling
+        """
+        # Calculate absolute profit/loss
         profit = end_total_asset - begin_total_asset
+        # Calculate return rate (relative profit)
         return_rate = profit / begin_total_asset
+        # Get Sharpe ratio from helper function
         sharpe_ratio = self._calculate_sharpe_ratio()
         
-        
-        # 0.7 i 0.2 najbolje
+        # Combine return rate (70%) and Sharpe ratio (30%) for final reward
         reward = (return_rate * 0.7) + (sharpe_ratio * 0.3)
         return reward * self.reward_scaling
 
     def _calculate_sharpe_ratio(self):
+        """
+        Calculates the Sharpe ratio based on historical asset values.
+        Sharpe ratio = (Average Return - Risk Free Rate) / Standard Deviation of Returns
+        Here we assume risk-free rate = 0 for simplicity.
+        
+        Returns:
+            float: Annualized Sharpe ratio, or 0 if insufficient data/zero standard deviation
+        """
+        # Need at least 2 data points to calculate returns
         if len(self.asset_memory) < 2:
             return 0
         
+        # Calculate daily returns as percentage changes
         daily_returns = np.diff(self.asset_memory) / self.asset_memory[:-1]
         
+        # Need at least 2 returns to calculate mean and std
         if len(daily_returns) < 2:
             return 0
         
+        # Calculate average daily return and standard deviation
         avg_daily_return = np.mean(daily_returns)
         std_daily_return = np.std(daily_returns)
         
+        # Avoid division by zero
         if std_daily_return == 0:
             return 0
         
-        annual_factor = np.sqrt(252)  # Pretpostavljamo 252 trgovačka dana u godini
+        annual_factor = np.sqrt(252) # 252 trading days in a year
         
+        # Calculate annualized Sharpe ratio
         sharpe_ratio = annual_factor * (avg_daily_return / std_daily_return)
         
         return sharpe_ratio

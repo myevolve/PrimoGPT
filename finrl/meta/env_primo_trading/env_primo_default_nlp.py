@@ -108,7 +108,7 @@ class StockTradingEnv(gym.Env):
         self._print(f"  Current stock holding: {self.state[index + self.stock_dim + 1]}", level=2)
         self._print(f"  Requested action: {action}", level=2)
 
-        sell_num_shares = 0  # Inicijaliziramo na 0
+        sell_num_shares = 0  # Initialize to 0
 
         if self.state[index + 2 * self.stock_dim + 1] != True:  # check if the stock is able to sell
             if self.state[index + self.stock_dim + 1] > 0:
@@ -130,7 +130,7 @@ class StockTradingEnv(gym.Env):
         self._print(f"  Current stock holding: {self.state[index + self.stock_dim + 1]}", level=2)
         self._print(f"  Requested action: {action}", level=2)
 
-        buy_num_shares = 0  # Inicijaliziramo na 0
+        buy_num_shares = 0  # Initialize to 0
 
         if self.state[index + 2 * self.stock_dim + 1] != True:  # check if the stock is able to buy
             if self.state[0] > self.state[index + 1] * action:  # check if cash is enough
