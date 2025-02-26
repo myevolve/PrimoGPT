@@ -6,6 +6,35 @@ PrimoGPT is a modular trading system developed as part of doctoral research titl
 
 The research introduces two key components: PrimoGPT, a specialized model for generating NLP features from financial texts (news, reports, etc.), and PrimoRL, a deep reinforcement learning model for making trading decisions. The system has demonstrated significant performance in real-world testing, achieving notable returns on major technology stocks (41.19% on NFLX, 24.24% on AAPL, and 26.72% on AMZN) while maintaining high Sharpe ratios.
 
+## Research and Educational Purpose
+
+This project was created primarily for research and educational purposes as part of doctoral studies. It is not designed as a ready-to-use application at this stage. The codebase is structured to demonstrate concepts and methodologies rather than provide a turnkey trading solution. Users should be aware that:
+
+- The system requires technical knowledge to set up and run
+- Components are organized for research exploration rather than end-user experience
+
+Future iterations will focus on improving usability and creating more accessible interfaces as outlined in the development roadmap.
+
+## Innovation and Future Directions
+
+The core innovation of this project lies in its RAG (Retrieval Augmented Generation) system for feature generation from financial texts. This approach enables:
+
+- **Contextual decision making**: By extracting structured features from unstructured financial news and reports, the system provides critical context for trading decisions
+- **Flexible feature generation**: The generated features can be utilized for various downstream tasks beyond trading, including risk assessment, portfolio optimization, and market analysis
+- **Early AI agent approach**: This prototype was developed in early 2024, before AI agent systems became popular, showing an early application of LLMs to financial analysis
+
+### Future Development Roadmap
+
+The next iteration of the system will focus on:
+- **Sentence embedding integration (some kind)**: Moving beyond predefined feature categories to a more flexible way of representing financial text
+- **Autonomous feature generation**: Allowing LLMs to create relevant features on their own based on all available inputs without predefined structures
+- **Component separation**: Separating PrimoGPT and PrimoRL into standalone libraries that can be developed and used independently
+- **Library development**: Converting the codebase into easy-to-use libraries that other developers can integrate into their projects
+- **User interface**: Creating a simple Streamlit-based UI that allows anyone to test and use the system without coding knowledge
+- **Primo Investing platform**: Using these libraries as the core of a new Primo Investing platform that will be publicly available
+
+This evolution will make the system more adaptable and better at finding important patterns in financial data that traditional methods might miss.
+
 ## Project Architecture
 
 The project consists of two main components:
