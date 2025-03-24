@@ -37,14 +37,24 @@ def bin_mapping(ret):
 # Downloading stock data and creating all necessary columns
 def get_returns(stock_symbol, start_date, end_date):
 
-    stock_data = yf.download(stock_symbol, start=start_date, end=end_date)
+    stock_data = yf.download(stock_symbol, start=start_date, end=end_date, auto_adjust=False)
     
+    # If we have multi-level columns, flatten them
+    if isinstance(stock_data.columns, pd.MultiIndex):
+        stock_data.columns = [col[0] for col in stock_data.columns]
+    
+    # Calculate returns
     returns = stock_data['Adj Close'].pct_change()
     
+    # Ensure all input data is one-dimensional
+    dates = stock_data.index.strftime('%Y-%m-%d').tolist()
+    prices = stock_data['Adj Close'].values.flatten()  # Ensures 1D
+    returns_values = returns.values.flatten()  # Ensures 1D
+    
     data = pd.DataFrame({
-        'Date': stock_data.index.strftime('%Y-%m-%d'),
-        'Adj Close Price': stock_data['Adj Close'],
-        'Returns': returns 
+        'Date': dates,
+        'Adj Close Price': prices,
+        'Returns': returns_values
     }).dropna()
 
     data['Bin Label'] = data['Returns'].apply(bin_mapping)
@@ -81,7 +91,7 @@ def get_news(symbol, data):
         start_date_str = current_date.strftime('%Y-%m-%d')
         next_day_date_str = next_day_date.strftime('%Y-%m-%d')
 
-        # Due to API limit, one call per second
+        # Due to API limit
         time.sleep(0.4)
 
         # Defining market closed hours

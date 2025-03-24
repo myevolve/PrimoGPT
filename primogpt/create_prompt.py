@@ -12,7 +12,7 @@ from langchain_openai import ChatOpenAI
 from langchain.output_parsers import ResponseSchema, StructuredOutputParser
 from langchain.schema.runnable import RunnablePassthrough
 from dotenv import load_dotenv
-from unsloth import FastLanguageModel
+#from unsloth import FastLanguageModel
 
 import json
 
