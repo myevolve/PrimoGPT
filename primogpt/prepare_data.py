@@ -16,7 +16,6 @@ from datasets import Dataset
 from openai import OpenAI
 from dotenv import load_dotenv
 
-
 # Setting up environment variables
 load_dotenv()
 finnhub_key = os.environ.get("FINNHUB_KEY")
@@ -61,6 +60,17 @@ def get_returns(stock_symbol, start_date, end_date):
 
     return data
 
+def is_valid_timestamp(timestamp):
+    """Validate if a timestamp is valid (not 0 or None and within reasonable range)."""
+    try:
+        if not timestamp or timestamp <= 0:
+            return False
+        # Check if timestamp is within reasonable range (1970 to 2050)
+        dt = datetime.fromtimestamp(timestamp)
+        return 1970 <= dt.year <= 2050
+    except (ValueError, TypeError, OSError):
+        return False
+
 # Downloading news about the stock
 def get_news(symbol, data):
     news_list = []
@@ -69,7 +79,6 @@ def get_news(symbol, data):
     valid_sources = ["Fintel", "InvestorPlace", "Seeking Alpha", "SeekingAlpha", "Yahoo", "CNBC", "TipRanks", "MarketWatch", "The Fly", "Benzinga", "TalkMarkets", "Stock Options Channel"]
 
     for index in range(len(data)):
-
         # Checking if it's the last row
         if index < len(data) - 1:
             current_row = data.iloc[index]
@@ -92,43 +101,56 @@ def get_news(symbol, data):
         next_day_date_str = next_day_date.strftime('%Y-%m-%d')
 
         # Due to API limit
-        time.sleep(0.4)
+        time.sleep(0.2)
 
         # Defining market closed hours
         start_time = dt_time(16, 00)
         end_time = dt_time(9, 30)
 
-        # Fetching news
-        news_items = finnhub_client.company_news(symbol, _from=start_date_str, to=next_day_date_str)
+        try:
+            # Fetching news
+            news_items = finnhub_client.company_news(symbol, _from=start_date_str, to=next_day_date_str)
 
-        transformed_news = [
-            {
-                "date": datetime.fromtimestamp(n['datetime']),
-                "headline": n['headline'],
-                "summary": n['summary'],
-                "source": n['source'],
-            } for n in news_items
-        ]
+            # Transform news items with validation
+            transformed_news = []
+            for n in news_items:
+                try:
+                    if not is_valid_timestamp(n.get('datetime')):
+                        print(f"Skipping news item with invalid timestamp: {n.get('datetime')}")
+                        continue
+                    
+                    transformed_news.append({
+                        "date": datetime.fromtimestamp(n['datetime']),
+                        "headline": n['headline'],
+                        "summary": n['summary'],
+                        "source": n['source'],
+                    })
+                except (KeyError, ValueError) as e:
+                    print(f"Error processing news item: {str(e)}")
+                    continue
 
-        # Filtering news by time outside market hours and by source
-        filtered_news = [
-            {
-                "date": news['date'].strftime('%Y%m%d%H%M%S'),
-                "headline": news['headline'],
-                "summary": news['summary'],
-                "source": news['source'],
-            }
-            for news in transformed_news
-            if (
-                (news['date'].date() == current_date.date() and news['date'].time() >= start_time) or
-                (current_date.date() < news['date'].date() < next_day_date.date()) or
-                (news['date'].date() == next_day_date.date() and news['date'].time() <= end_time)
-            ) and news['source'] in valid_sources
-        ]
+            # Filtering news by time outside market hours and by source
+            filtered_news = [
+                {
+                    "date": news['date'].strftime('%Y%m%d%H%M%S'),
+                    "headline": news['headline'],
+                    "summary": news['summary'],
+                    "source": news['source'],
+                }
+                for news in transformed_news
+                if (
+                    (news['date'].date() == current_date.date() and news['date'].time() >= start_time) or
+                    (current_date.date() < news['date'].date() < next_day_date.date()) or
+                    (news['date'].date() == next_day_date.date() and news['date'].time() <= end_time)
+                ) and news['source'] in valid_sources
+            ]
 
-        filtered_news.sort(key=lambda news: news['date'])
+            filtered_news.sort(key=lambda news: news['date'])
+            news_list.append(json.dumps(filtered_news))
 
-        news_list.append(json.dumps(filtered_news))
+        except Exception as e:
+            print(f"Error fetching news for {symbol} on {start_date_str}: {str(e)}")
+            news_list.append(json.dumps([]))  # Add empty list for this date
 
     data['News'] = news_list
     return data
@@ -192,6 +214,7 @@ def get_company_profile(symbol):
 # Main function for downloading data
 def prepare_data_for_symbol(symbol, data_dir, start_date, end_date):
     data = get_returns(symbol, start_date, end_date)
+    print("Returns done")
 
     data = get_news(symbol, data)
     print("News done")
