@@ -56,8 +56,7 @@ The project consists of two main components:
 - Features three custom trading environments extending FinRL:
   - `env_primo_default`: Enhanced stock trading environment with custom logging.
   - `env_primo_default_nlp`: Extended environment with NLP capabilities.
-  - `env_primorl`: New environment incorporating NLP features into the state space and using a custom reward function balancing portfolio return and Sharpe ratio ( \( r(s,a,s') = C_P r_P + C_S S_T \) ).
-- Employs a continuous action space (-1 to 1) for flexible trade sizing.
+  - `env_primorl`: New environment incorporating NLP features into the state space and using a custom reward function balancing portfolio return and Sharpe ratio.
 - Core implementation in `src/primorl/`.
 - Training and experimentation in `notebooks/6. PrimoRL trading with NLP features/`.
 
@@ -85,7 +84,7 @@ The system has been validated through extensive testing on five technology stock
 - **Training period:** April 1, 2022, to July 31, 2024
 - **Testing period:** August 1, 2024, to February 28, 2025
 
-The PrimoGPT model was trained on a separate dataset (GOOGL, META, AMD, TSLA) to ensure generalizability.
+The PrimoGPT model was trained on a separate dataset (AMD, GOOGL, IBM, META, TSLA) to ensure generalizability.
 
 ## Results Comparison
 
