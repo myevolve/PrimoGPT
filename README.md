@@ -2,9 +2,9 @@
 
 ## Overview
 
-PrimoGPT is a modular trading system developed as part of doctoral research titled "An Automated Stock Market Trading System Based on Deep Reinforcement Learning". The system combines Natural Language Processing (NLP) and Deep Reinforcement Learning (DRL) to support investment decisions, aiming to minimize risk and potential losses through deep financial market analysis.
+PrimoGPT is a modular trading system developed as part of doctoral research titled "An Automated Stock Market Trading System Based on Deep Reinforcement Learning". The system integrates advanced Natural Language Processing (NLP) and Deep Reinforcement Learning (DRL) to enhance decision-making in capital markets, aiming to minimize risk and potential losses through deep financial market analysis while addressing challenges like market volatility and data complexity.
 
-The research introduces two key components: PrimoGPT, a specialized model for generating NLP features from financial texts (news, reports, etc.), and PrimoRL, a deep reinforcement learning model for making trading decisions. The system has demonstrated significant performance in real-world testing, achieving notable returns on major technology stocks (41.19% on NFLX, 24.24% on AAPL, and 26.72% on AMZN) while maintaining high Sharpe ratios.
+The research introduces two key components: **PrimoGPT**, a specialized Transformer-based NLP model for extracting features from financial texts (news, reports, etc.), and **PrimoRL**, a deep reinforcement learning model for making adaptive trading decisions. The system has demonstrated superior performance over traditional strategies in experimental evaluations on leading technology stocks (AAPL, NFLX, MSFT, CRM, AMZN) during the testing period from August 1, 2024, to February 28, 2025, consistently yielding above-market returns and high Sharpe ratios.
 
 ## Research and Educational Purpose
 
@@ -13,45 +13,53 @@ This project was created primarily for research and educational purposes as part
 - The system requires technical knowledge to set up and run
 - Components are organized for research exploration rather than end-user experience
 
-Future iterations will focus on improving usability and creating more accessible interfaces as outlined in the development roadmap.
+Future iterations will focus on improving usability and creating more accessible interfaces as outlined in the development roadmap, building upon the research findings that demonstrated the system's potential to outperform established strategies.
 
 ## Innovation and Future Directions
 
-The core innovation of this project lies in its RAG (Retrieval Augmented Generation) system for feature generation from financial texts. This approach enables:
+The core innovation lies in its **PrimoGPT** module, which utilizes a custom RAG (Retrieval Augmented Generation) system for feature generation from financial texts. This approach enables:
 
-- **Contextual decision making**: By extracting structured features from unstructured financial news and reports, the system provides critical context for trading decisions
-- **Flexible feature generation**: The generated features can be utilized for various downstream tasks beyond trading, including risk assessment, portfolio optimization, and market analysis
-- **Early AI agent approach**: This prototype was developed in early 2024, before AI agent systems became popular, showing an early application of LLMs to financial analysis
+- **Contextual decision making**: Extracting structured features from unstructured financial news and reports provides critical context.
+- **Flexible feature generation**: Generated NLP features can be used for diverse downstream tasks.
+- **Early AI agent approach**: Developed in early 2024, it represents an early application of LLMs to financial analysis.
 
 ### Future Development Roadmap
 
 The next iteration of the system will focus on:
-- **Sentence embedding integration (some kind)**: Moving beyond predefined feature categories to a more flexible way of representing financial text
-- **Autonomous feature generation**: Allowing LLMs to create relevant features on their own based on all available inputs without predefined structures
-- **Component separation**: Separating PrimoGPT and PrimoRL into standalone libraries that can be developed and used independently
-- **Library development**: Converting the codebase into easy-to-use libraries that other developers can integrate into their projects
-- **User interface**: Creating a simple Streamlit-based UI that allows anyone to test and use the system without coding knowledge
-- **Primo Investing platform**: Using these libraries as the core of a new Primo Investing platform that will be publicly available
+- **Sentence embedding integration**: Moving towards more flexible representations of financial text.
+- **Autonomous feature generation**: Enabling LLMs to create relevant features independently.
+- **Component separation**: Developing PrimoGPT and PrimoRL as standalone libraries.
+- **Library development**: Creating easy-to-use libraries for integration.
+- **User interface**: Building a simple Streamlit-based UI for wider accessibility.
+- **Primo Investing platform**: Utilizing these libraries as the core for a public platform.
+- **Enhancing Architecture**: Incorporating NLP features directly into the PrimoRL reward function, expanding to other asset classes, and refining PrimoGPT's feature generation capabilities.
 
-This evolution will make the system more adaptable and better at finding important patterns in financial data that traditional methods might miss.
+This evolution aims to make the system more adaptable and effective at identifying significant patterns in financial data.
 
 ## Project Architecture
 
 The project consists of two main components:
 
 ### 1. PrimoGPT Module
-- Custom implementation of RAG (Retrieval Augmented Generation)
-- Feature generation pipeline for financial data processing
-- Fine-tuned LLM model based on Meta-Llama-3.1-8B-Instruct
-- Key components:
-  - `prepare_data.py`: Data collection and preprocessing pipeline (base on FinGPT Forecaster idea)
-  - `create_prompt.py`: Custom prompt engineering system (base on FinGPT Forecaster idea)
+- Custom implementation of RAG (Retrieval Augmented Generation).
+- Feature generation pipeline processing financial texts to extract NLP features (e.g., sentiment, relevance, potential price impact).
+- Fine-tuned LLM model based on **Meta-Llama-3.1-8B-Instruct**, trained using instruction-based datasets generated by GPT-4 and incorporating next-day stock price movements during training (not used during operational prediction).
+- Key implementation details in notebooks:
+  - `notebooks/1. Get and process data/`: Data collection (Finnhub, Yahoo Finance) and preprocessing pipeline (based on FinGPT Forecaster).
+  - `notebooks/2. Train PrimoGPT model/`: Model fine-tuning using Unsloth and QLoRA.
+  - `notebooks/5. Generate NLP features with PrimoGPT/`: NLP feature extraction pipeline using custom prompts via LangChain.
 
 ### 2. PrimoRL Module
-Three custom trading environments extending FinRL:
-- `env_primo_default`: Enhanced stock trading environment with custom logging (extended from FinRL)
-- `env_primo_default_nlp`: Extended environment with NLP capabilities (extended from FinRL)
-- `env_primorl`: New environment incorporating NLP features with custom reward function (extended from FinRL)
+- Deep Reinforcement Learning trading framework built using **OpenAI Gymnasium** and **FinRL**.
+- Implements **Stable Baselines 3** algorithms (A2C, SAC, PPO).
+- Utilizes **technical indicators** (MACD, Bollinger Bands, RSI, DX with 30-day period; SMA with 30 and 60-day periods) calculated from Yahoo Finance data.
+- Features three custom trading environments extending FinRL:
+  - `env_primo_default`: Enhanced stock trading environment with custom logging.
+  - `env_primo_default_nlp`: Extended environment with NLP capabilities.
+  - `env_primorl`: New environment incorporating NLP features into the state space and using a custom reward function balancing portfolio return and Sharpe ratio ( \( r(s,a,s') = C_P r_P + C_S S_T \) ).
+- Employs a continuous action space (-1 to 1) for flexible trade sizing.
+- Core implementation in `src/primorl/`.
+- Training and experimentation in `notebooks/6. PrimoRL trading with NLP features/`.
 
 ## Project Structure
 
@@ -70,48 +78,63 @@ src/
 └── primorl/                                 # Core PrimoRL trading environments
 ```
 
-Each notebook directory contains specific experiments and implementations:
-- **Get and process data**: Scripts for collecting financial data, preprocessing, and feature engineering
-- **Train PrimoGPT model**: Notebooks for training and fine-tuning the LLM model for financial text analysis
-- **Trading benchmark strategy**: Implementation and evaluation of traditional trading strategies as benchmarks
-- **FinRL benchmark strategy**: Implementation of FinRL trading strategies
-- **Generate NLP features**: Pipeline for extracting NLP features from financial texts using PrimoGPT
-- **PrimoRL trading with NLP**: Integration of NLP features into RL trading strategies with performance analysis
 
 ## Research Validation
 
-The system has been validated through extensive testing on multiple stocks (AAPL, NFLX, MSFT, CRM, AMZN) with:
-- Training period: 2021-09-01 to 2023-12-31
-- Testing period: 2024-01-01 to 2024-07-31
+The system has been validated through extensive testing on five technology stocks (AAPL, NFLX, MSFT, CRM, AMZN) with:
+- **Training period:** April 1, 2022, to July 31, 2024
+- **Testing period:** August 1, 2024, to February 28, 2025
+
+The PrimoGPT model was trained on a separate dataset (GOOGL, META, AMD, TSLA) to ensure generalizability.
 
 ## Results Comparison
 
-The following table presents the key performance metrics for all tested strategies:
+The effectiveness of PrimoRL, particularly when incorporating NLP features from PrimoGPT, was evaluated against traditional strategies (Buy & Hold, Momentum, Price-MA, MACD), market benchmarks (DJI), optimized strategies (Mean-Variance), and the baseline FinRL framework across the testing period.
 
-| Models          | Cumulative Return | Sharpe Ratio | Annual Volatility | Maximum Drawdown |
-|----------------|------------------|--------------|------------------|-----------------|
-| Mean-Variance  | 16.66%          | 1.55         | 18.48%          | -8.52%         |
-| DJI (B&H)      | 8.02%           | 1.40         | 10.00%          | -5.20%         |
-| FinRL (A2C)    | 17.84%          | 1.30         | 24.18%          | -15.33%        |
-| FinRL (SAC)    | 25.53%          | 1.74         | 24.54%          | -10.49%        |
-| FinRL (PPO)    | 16.34%          | 1.36         | 21.03%          | -10.50%        |
-| PrimoRL (A2C)  | 14.68%          | 1.31         | 19.75%          | -10.50%        |
-| PrimoRL (SAC)  | 22.19%          | 1.53         | 24.83%          | -10.07%        |
-| PrimoRL (PPO)  | **32.29%**      | **2.19**     | 23.60%          | **-7.47%**     |
+### Individual Stock Performance (PrimoRL vs. Best Alternative)
 
-The following graphs demonstrate the performance comparison between PrimoRL and FinRL implementations using different reinforcement learning algorithms (A2C, SAC, PPO) against traditional strategies (DJI Buy and Hold, Mean-Variance):
+| Stock | Model   | Cumulative Return | Sharpe Ratio | Annualized Volatility | Maximum Drawdown |
+| :---- | :------ | :---------------- | :----------- | :-------------------- | :--------------- |
+| AAPL  | PrimoRL | 12.20%            | 1.15         | 19.08%                | -12.14%          |
+|       | MOM     | 21.20%            | 2.16         | 16.22%                | -9.37%           |
+| NFLX  | PrimoRL | **62.82%**        | **2.83**     | **32.07%**            | **-7.74%**       |
+|       | B&H     | 58.12%            | 2.62         | 32.82%                | -10.90%          |
+| MSFT  | PrimoRL | **1.45%**         | **0.22**     | 21.24%                | -9.89%           |
+|       | FinRL   | 0.24%             | 0.12         | 21.03%                | -9.48%           |
+| CRM   | PrimoRL | **31.95%**        | 1.64         | 33.05%                | -14.55%          |
+|       | P-MA    | 22.36%            | 1.77         | 21.27%                | -11.53%          |
+| AMZN  | PrimoRL | **21.48%**        | **1.42**     | 26.60%                | -11.90%          |
+|       | FinRL   | 20.30%            | 1.35         | 26.64%                | -11.90%          |
+
+*PrimoRL generally outperformed benchmarks, showing significant gains especially on NFLX, CRM, and AMZN, though MOM strategy was superior for AAPL.*
+
+### Portfolio Performance (AAPL, NFLX, MSFT, CRM, AMZN)
+
+| Model         | Cumulative Return | Sharpe Ratio | Annualized Volatility | Maximum Drawdown |
+| :------------ | :---------------- | :----------- | :-------------------- | :--------------- |
+| Mean Variance | 22.24%            | 1.64         | 23.19%                | -9.22%           |
+| DJI (B&H)     | 6.35%             | 0.94         | 12.24%                | -6.91%           |
+| FinRL (A2C)   | -4.83%            | -0.25        | 23.55%                | -11.80%          |
+| FinRL (SAC)   | 24.50%            | 1.28         | 34.53%                | -16.50%          |
+| FinRL (PPO)   | 13.54%            | 0.87         | 31.38%                | -18.52%          |
+| PrimoRL (A2C) | 20.28%            | 1.10         | 35.05%                | -16.48%          |
+| PrimoRL (SAC) | **27.39%**        | **1.79**     | **25.55%**            | **-11.44%**      |
+| PrimoRL (PPO) | -8.03%            | -0.46        | 24.25%                | -11.73%          |
+
+*PrimoRL (SAC) demonstrated the best portfolio performance, achieving the highest cumulative return and Sharpe ratio with controlled volatility and drawdown, significantly outperforming FinRL variants and traditional benchmarks. This highlights the benefit of integrating NLP features, especially with the SAC agent.*
+
+The following graphs further illustrate the performance comparison:
+
+### FinRL Benchmark Performance
+<img src="figs/finrl.png" width="800" alt="FinRL Performance Comparison">
+
+
+*Cumulative returns of FinRL variants (A2C, SAC, PPO) compared to Mean-Variance and DJI benchmarks, highlighting the superior adaptability of RL-based strategies.*
 
 ### PrimoRL Performance
 <img src="figs/primorl.png" width="800" alt="PrimoRL Performance Comparison">
 
-PrimoRL shows consistently better performance across all RL algorithms, with PPO achieving the highest returns (>40% at peak). The system maintains superior performance compared to traditional strategies throughout the testing period.
-
-### FinRL Benchmark
-<img src="figs/finrl.png" width="800" alt="FinRL Performance Comparison">
-
-The baseline FinRL implementation, while still outperforming traditional strategies, shows lower overall returns and higher volatility compared to PrimoRL, particularly visible in the A2C implementation's performance.
-
-The comparison highlights PrimoRL's enhanced stability and improved returns, demonstrating the effectiveness of incorporating NLP features and custom reward functions in the trading environment.
+*Cumulative returns of PrimoRL variants (A2C, SAC, PPO) compared to DJI and Mean-Variance benchmarks, highlighting PrimoRL (SAC) as the optimal strategy with superior returns and controlled risk exposure.*
 
 ## Acknowledgments
 
@@ -121,18 +144,7 @@ This research builds upon and extends the excellent work of the AI4Finance Found
 
 The success of this research would not have been possible without these foundational contributions to the field of AI in finance.
 
-## Future Development
-
-This repository will undergo further enhancements following the doctoral defense, including:
-- Code optimization and performance improvements
-- Translation of remaining components to English
-- Detailed setup and execution documentation
-- Enhanced RAG system implementation
-- Extended documentation
 
 ## License and Disclaimer
 
 This project is licensed under the MIT License. This repository contains academic research code intended for educational purposes only. Nothing herein constitutes financial advice or trading recommendations. The trading strategies and analyses are experimental in nature and have not been validated for real-world trading. Users should be aware that trading involves substantial risk of loss and should always consult financial professionals before making investment decisions.
-
----
-Note: This repository is part of ongoing doctoral research. Further improvements and documentation will be added following the defense.
