@@ -13,7 +13,7 @@ stable-baselines3==2.6.0
 backtrader
 
 # Finance Data & APIs
-yfinance==0.2.55
+yfinance==0.2.59
 finnhub-python==2.4.23
 stockstats==0.6.4
 alpaca-trade-api==3.2.0

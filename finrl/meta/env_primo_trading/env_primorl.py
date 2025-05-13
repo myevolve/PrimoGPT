@@ -9,8 +9,6 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 
 
 class StockTradingEnv(gym.Env):
-    """A stock trading environment for OpenAI gym"""
-
     metadata = {"render.modes": ["human"]}
 
     def __init__(
@@ -155,46 +153,56 @@ class StockTradingEnv(gym.Env):
 
     def _calculate_reward(self, begin_total_asset, end_total_asset):
         """
-        Calculates the custom reward based on two components:
-        1. Return rate (70% weight) - Measures the profit/loss relative to initial investment
-        2. Sharpe ratio (30% weight) - Measures risk-adjusted returns
+        Calculates the agent's reward based on Sharpe ratio and return rate.
+        
+        The function combines Sharpe ratio (risk-return measure) with return rate
+        when enough data points are available (30+). During early stages,
+        it uses only return rate.
         
         Args:
             begin_total_asset: Total portfolio value at the start of the step
             end_total_asset: Total portfolio value at the end of the step
             
         Returns:
-            float: Weighted combination of return rate and Sharpe ratio, scaled by reward_scaling
+            float: Reward scaled with reward_scaling
         """
-        # Calculate absolute profit/loss
+        # Calculate return rate
         profit = end_total_asset - begin_total_asset
-        # Calculate return rate (relative profit)
         return_rate = profit / begin_total_asset
-        # Get Sharpe ratio from helper function
-        sharpe_ratio = self._calculate_sharpe_ratio()
         
-        # Combine return rate (70%) and Sharpe ratio (30%) for final reward
-        reward = (return_rate * 0.7) + (sharpe_ratio * 0.3)
-        return reward * self.reward_scaling
+        # Check if we have enough history for Sharpe ratio
+        if len(self.asset_memory) <= 30:
+            # Early stages - use only return rate
+            return return_rate * self.reward_scaling
+        else:
+            # Get Sharpe ratio from helper function
+            sharpe_ratio = self._calculate_sharpe_ratio()
+            
+            # Combine Sharpe ratio and return rate for final reward
+            reward = sharpe_ratio * return_rate
+            return reward * self.reward_scaling
 
     def _calculate_sharpe_ratio(self):
         """
         Calculates the Sharpe ratio based on historical asset values.
         Sharpe ratio = (Average Return - Risk Free Rate) / Standard Deviation of Returns
         Here we assume risk-free rate = 0 for simplicity.
+        Requires at least 30 data points for statistical reliability.
         
         Returns:
             float: Annualized Sharpe ratio, or 0 if insufficient data/zero standard deviation
         """
-        # Need at least 2 data points to calculate returns
-        if len(self.asset_memory) < 2:
+        # Need at least 30 data points for statistical reliability
+        MIN_HISTORY_LENGTH = 30
+        
+        if len(self.asset_memory) < MIN_HISTORY_LENGTH + 1:
             return 0
         
         # Calculate daily returns as percentage changes
         daily_returns = np.diff(self.asset_memory) / self.asset_memory[:-1]
         
-        # Need at least 2 returns to calculate mean and std
-        if len(daily_returns) < 2:
+        # Verify we have enough returns
+        if len(daily_returns) < MIN_HISTORY_LENGTH:
             return 0
         
         # Calculate average daily return and standard deviation
@@ -213,7 +221,6 @@ class StockTradingEnv(gym.Env):
         return sharpe_ratio
 
     def step(self, actions):
-        # Na početku metode
         self._print(f"\nDay: {self.day}")
         self._print(f"Current state: {self.state}")
         self._print(f"Actions: {actions}")
@@ -227,7 +234,7 @@ class StockTradingEnv(gym.Env):
                 * np.array(self.state[(self.stock_dim + 1) : (self.stock_dim * 2 + 1)])
             )
             df_total_value = pd.DataFrame(self.asset_memory)
-            tot_reward = (
+            tot_asset_change = (
                 self.state[0]
                 + sum(
                     np.array(self.state[1 : (self.stock_dim + 1)])
@@ -237,6 +244,10 @@ class StockTradingEnv(gym.Env):
                 )
                 - self.asset_memory[0]
             )  # initial_amount is only cash part of our initial asset
+            
+            # Calculate actual total reward (sum of all rewards)
+            tot_reward = np.sum(self.rewards_memory)
+            
             df_total_value.columns = ["account_value"]
             df_total_value["date"] = self.date_memory
             df_total_value["daily_return"] = df_total_value["account_value"].pct_change(
@@ -256,6 +267,7 @@ class StockTradingEnv(gym.Env):
                     print(f"Day: {self.day}, episode: {self.episode}")
                     print(f"Begin total asset: {self.asset_memory[0]:0.2f}")
                     print(f"End total asset: {end_total_asset:0.2f}")
+                    print(f"Total asset change: {tot_asset_change:0.2f}")
                     print(f"Total reward: {tot_reward:0.2f}")
                     print(f"Total cost: {self.cost:0.2f}")
                     print(f"Total trades: {self.trades}")
@@ -318,20 +330,20 @@ class StockTradingEnv(gym.Env):
                 self.state
             )  # add current state in state_recorder for each step
 
-            # Nakon izračuna begin_total_asset
+            # After calculating begin_total_asset
             self._print(f"Begin total asset: {begin_total_asset:.2f}")
 
-            # Nakon izvršenja trgovanja
+            # After executing trades
             self._print("Executed trades:")
             for i, action in enumerate(actions):
                 if action != 0:
                     self._print(f"  Stock {i}: {'Bought' if action > 0 else 'Sold'} {abs(action)} shares")
 
-            # Nakon ažuriranja stanja
+            # After updating state
             self._print(f"End total asset: {end_total_asset:.2f}")
             self._print(f"Reward: {self.reward:.5f}")
 
-            # Na kraju metode
+            # At the end of the method
             #self._print(f"Updated state: {self.state}")
             self._print(f"Current holdings:")
             for i in range(self.stock_dim):
@@ -345,7 +357,7 @@ class StockTradingEnv(gym.Env):
         return self.state, self.reward, self.terminal, False, {}
 
     def reset(self, *, seed=None, options=None):
-        # Na početku metode
+        # At the beginning of the method
         self._print(f"\nResetting environment. Episode: {self.episode}")
 
         # initiate state
@@ -353,7 +365,7 @@ class StockTradingEnv(gym.Env):
         self.data = self.df.loc[self.day, :]
         self.state = self._initiate_state()
 
-        # Nakon inicijalizacije stanja
+        # After initializing state
         self._print(f"Initial state: {self.state}")
         self._print(f"Number of stocks: {self.stock_dim}")
         self._print(f"Initial holdings:")
