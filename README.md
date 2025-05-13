@@ -94,11 +94,11 @@ The effectiveness of PrimoRL, particularly when incorporating NLP features from 
 
 | Stock | Model   | Cumulative Return | Sharpe Ratio | Annualized Volatility | Maximum Drawdown |
 | :---- | :------ | :---------------- | :----------- | :-------------------- | :--------------- |
-| AAPL  | PrimoRL | 12.20%            | 1.15         | 19.08%                | -12.14%          |
-|       | MOM     | 21.20%            | 2.16         | 16.22%                | -9.37%           |
-| NFLX  | PrimoRL | **62.82%**        | **2.83**     | **32.07%**            | **-7.74%**       |
+| AAPL  | PrimoRL | 20.22%            | **2.20**     | 15.27%                | **-5.51%**       |
+|       | MOM     | **21.20%**        | 2.16         | 16.22%                | -9.37%           |
+| NFLX  | PrimoRL | **58.47%**        | **2.80**     | 30.52%                | **-7.76%**       |
 |       | B&H     | 58.12%            | 2.62         | 32.82%                | -10.90%          |
-| MSFT  | PrimoRL | **1.45%**         | **0.22**     | 21.24%                | -9.89%           |
+| MSFT  | PrimoRL | **0.53%**         | **0.14**     | 19.35%                | -13.39%          |
 |       | FinRL   | 0.24%             | 0.12         | 21.03%                | -9.48%           |
 | CRM   | PrimoRL | **31.95%**        | 1.64         | 33.05%                | -14.55%          |
 |       | P-MA    | 22.36%            | 1.77         | 21.27%                | -11.53%          |
@@ -114,13 +114,13 @@ The effectiveness of PrimoRL, particularly when incorporating NLP features from 
 | Mean Variance | 22.24%            | 1.64         | 23.19%                | -9.22%           |
 | DJI (B&H)     | 6.35%             | 0.94         | 12.24%                | -6.91%           |
 | FinRL (A2C)   | -4.83%            | -0.25        | 23.55%                | -11.80%          |
-| FinRL (SAC)   | 24.50%            | 1.28         | 34.53%                | -16.50%          |
+| FinRL (SAC)   | 24.36%            | 1.28         | 34.53%                | -16.50%          |
 | FinRL (PPO)   | 13.54%            | 0.87         | 31.38%                | -18.52%          |
-| PrimoRL (A2C) | 20.28%            | 1.10         | 35.05%                | -16.48%          |
-| PrimoRL (SAC) | **27.39%**        | **1.79**     | **25.55%**            | **-11.44%**      |
-| PrimoRL (PPO) | -8.03%            | -0.46        | 24.25%                | -11.73%          |
+| PrimoRL (A2C) | 8.94%             | 0.71         | 26.08%                | -14.84%          |
+| PrimoRL (SAC) | 10.01%            | 0.77         | 25.96%                | -14.86%          |
+| PrimoRL (PPO) | **27.14%**        | **1.70**     | 27.01%                | **-11.44%**      |
 
-*PrimoRL (SAC) demonstrated the best portfolio performance, achieving the highest cumulative return and Sharpe ratio with controlled volatility and drawdown, significantly outperforming FinRL variants and traditional benchmarks. This highlights the benefit of integrating NLP features, especially with the SAC agent.*
+*PrimoRL (PPO) demonstrated the best portfolio performance, achieving the highest cumulative return and Sharpe ratio with controlled volatility and drawdown, significantly outperforming FinRL variants and traditional benchmarks. This highlights the benefit of integrating NLP features, especially with the PPO agent.*
 
 The following graphs further illustrate the performance comparison:
 
@@ -133,7 +133,7 @@ The following graphs further illustrate the performance comparison:
 ### PrimoRL Performance
 <img src="figs/primorl.png" width="800" alt="PrimoRL Performance Comparison">
 
-*Cumulative returns of PrimoRL variants (A2C, SAC, PPO) compared to DJI and Mean-Variance benchmarks, highlighting PrimoRL (SAC) as the optimal strategy with superior returns and controlled risk exposure.*
+*Cumulative returns of PrimoRL variants (A2C, SAC, PPO) compared to DJI and Mean-Variance benchmarks, highlighting PrimoRL (PPO) as the optimal strategy with superior returns and controlled risk exposure.*
 
 ## Acknowledgments
 
