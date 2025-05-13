@@ -387,12 +387,12 @@ def save_results_to_markdown(results, output_dir=OUTPUT_DIR):
 def main():
     # Define strategy files
     strategy_files = [
-        ('aapl_primorl_df_account_value_ppo.pkl', 'PrimoRL', 'account_value'),
-        ('aapl_finrl_df_account_value_ppo.pkl', 'FinRL', 'account_value'),
-        ('aapl_finrl_buy_and_hold.pkl', 'Buy and Hold', 'close'),
-        ('aapl_macd_strategy.pkl', 'MACD', 'Value'),
-        ('aapl_momentum_strategy.pkl', 'Momentum', 'Value'),
-        ('aapl_p_ma_strategy.pkl', 'Price MA', 'Value')
+        ('amzn_primorl_df_account_value_ppo.pkl', 'PrimoRL', 'account_value'),
+        ('amzn_finrl_df_account_value_ppo.pkl', 'FinRL', 'account_value'),
+        ('amzn_finrl_buy_and_hold.pkl', 'Buy and Hold', 'close'),
+        ('amzn_macd_strategy.pkl', 'MACD', 'Value'),
+        ('amzn_momentum_strategy.pkl', 'Momentum', 'Value'),
+        ('amzn_p_ma_strategy.pkl', 'Price MA', 'Value')
     ]
     
     # Load strategy returns

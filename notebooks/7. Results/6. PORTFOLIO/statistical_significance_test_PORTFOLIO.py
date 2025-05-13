@@ -315,6 +315,127 @@ def create_visualizations(
         
         plt.close(fig)
 
+def save_results_to_markdown(all_returns, ci_df, anova_p, t_test_df, output_dir=OUTPUT_DIR):
+    """
+    Save analysis results to a Markdown file
+    
+    Parameters:
+    -----------
+    all_returns : Dict[str, pd.Series]
+        Dictionary mapping strategy names to their return data
+    ci_df : pd.DataFrame
+        DataFrame containing confidence interval results
+    anova_p : float
+        p-value from ANOVA test
+    t_test_df : pd.DataFrame
+        DataFrame containing t-test results
+    output_dir : str, optional
+        Directory to save the markdown file, default is OUTPUT_DIR
+    """
+    file_path = os.path.join(output_dir, 'statistical_analysis_portfolio_results.md')
+    
+    with open(file_path, 'w') as f:
+        # Write title
+        f.write("# Statistical Analysis of Portfolio Trading Strategies\n\n")
+        
+        # Strategy overview
+        f.write("## Overview of Strategies\n\n")
+        f.write(f"Analysis includes {len(all_returns)} strategies:\n\n")
+        
+        # Group strategies by type
+        portfolio_strategies = [s for s in all_returns.keys() if not (s.endswith('DJI') or s.endswith('Mean-Variance'))]
+        dji_strategies = [s for s in all_returns.keys() if s.endswith('DJI')]
+        mean_var_strategies = [s for s in all_returns.keys() if s.endswith('Mean-Variance')]
+        
+        if portfolio_strategies:
+            f.write("### Portfolio Strategies\n")
+            for strategy in portfolio_strategies:
+                f.write(f"- {strategy}\n")
+            f.write("\n")
+            
+        if dji_strategies:
+            f.write("### Benchmark Strategies\n")
+            for strategy in dji_strategies:
+                f.write(f"- {strategy}\n")
+            f.write("\n")
+            
+        if mean_var_strategies:
+            f.write("### Traditional Strategies\n")
+            for strategy in mean_var_strategies:
+                f.write(f"- {strategy}\n")
+            f.write("\n")
+        
+        # Confidence intervals results
+        f.write("## Strategy Performance Summary\n\n")
+        
+        # Format CI dataframe to show percentages
+        formatted_ci_df = ci_df.copy()
+        formatted_ci_df['Mean Daily Return'] = formatted_ci_df['Mean Daily Return'].map('{:.4%}'.format)
+        formatted_ci_df['Daily CI Lower'] = formatted_ci_df['Daily CI Lower'].map('{:.4%}'.format)
+        formatted_ci_df['Daily CI Upper'] = formatted_ci_df['Daily CI Upper'].map('{:.4%}'.format)
+        f.write(formatted_ci_df.reset_index().to_markdown(index=False))
+        f.write("\n\n")
+        
+        # Confidence intervals plot
+        f.write("## Confidence Intervals\n\n")
+        f.write('<img src="confidence_intervals_daily.png" alt="Mean Daily Returns with 95% Confidence Intervals by Strategy" style="max-width: 1000px; width: 100%;" />\n\n')
+        
+        # ANOVA results
+        f.write("## ANOVA Test Results\n\n")
+        f.write("One-way ANOVA test was performed to determine if there are statistically ")
+        f.write("significant differences between strategy returns.\n\n")
+        f.write(f"**ANOVA p-value:** {anova_p:.6f}\n\n")
+        
+        if anova_p < 0.05:
+            f.write("The ANOVA test indicates that there are statistically significant differences ")
+            f.write("between the performance of different strategies (p < 0.05).\n\n")
+        else:
+            f.write("The ANOVA test does not provide sufficient evidence of statistically significant ")
+            f.write("differences between the performance of different strategies (p >= 0.05).\n\n")
+        
+        # Pairwise comparisons
+        if not t_test_df.empty:
+            f.write("## Pairwise Comparisons\n\n")
+            
+            # Format t-test dataframe to show neat p-values
+            formatted_t_test_df = t_test_df.copy()
+            formatted_t_test_df['p-value'] = formatted_t_test_df['p-value'].map('{:.4f}'.format)
+            formatted_t_test_df['t-statistic'] = formatted_t_test_df['t-statistic'].map('{:.4f}'.format)
+            
+            f.write(formatted_t_test_df.to_markdown(index=False))
+            f.write("\n\n")
+            
+            # Add significance heatmap
+            f.write("## Statistical Significance Heatmap\n\n")
+            f.write('<img src="statistical_significance_heatmap.png" alt="Statistical Significance Heatmap" style="max-width: 1000px; width: 100%;" />\n\n')
+            
+            # Summary of significant differences
+            primorl_comparisons = t_test_df[t_test_df['Reference'].str.contains('PrimoRL')]
+            if not primorl_comparisons.empty:
+                sig_better = primorl_comparisons[(primorl_comparisons['Significant']) & (primorl_comparisons['t-statistic'] > 0)]
+                sig_worse = primorl_comparisons[(primorl_comparisons['Significant']) & (primorl_comparisons['t-statistic'] < 0)]
+                
+                f.write("## Summary of PrimoRL Performance\n\n")
+                if not sig_better.empty:
+                    f.write(f"PrimoRL significantly outperforms {len(sig_better)} strategies (p < 0.05):\n")
+                    for _, row in sig_better.iterrows():
+                        f.write(f"- {row['Compared To']} (p={row['p-value']:.4f})\n")
+                    f.write("\n")
+                    
+                if not sig_worse.empty:
+                    f.write(f"PrimoRL is significantly outperformed by {len(sig_worse)} strategies (p < 0.05):\n")
+                    for _, row in sig_worse.iterrows():
+                        f.write(f"- {row['Compared To']} (p={row['p-value']:.4f})\n")
+                    f.write("\n")
+                    
+                non_sig = primorl_comparisons[~primorl_comparisons['Significant']]
+                if not non_sig.empty:
+                    f.write(f"No statistically significant difference between PrimoRL and {len(non_sig)} strategies (p >= 0.05):\n")
+                    for _, row in non_sig.iterrows():
+                        f.write(f"- {row['Compared To']} (p={row['p-value']:.4f})\n")
+    
+    print(f"Results saved to {file_path}")
+
 def run_analysis():
     """Main function to run the simplified analysis"""
     print("Loading data and calculating returns...")
@@ -362,6 +483,9 @@ def run_analysis():
     
     print("Creating visualizations...")
     create_visualizations(all_returns, ci_df, anova_p, t_test_df)
+    
+    print("Saving results to Markdown...")
+    save_results_to_markdown(all_returns, ci_df, anova_p, t_test_df)
     
     print("\nResults:")
     print("\nConfidence Intervals (95%):")
