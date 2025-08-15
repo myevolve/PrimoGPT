@@ -143,7 +143,10 @@ This research builds upon and extends the excellent work of the AI4Finance Found
 
 The success of this research would not have been possible without these foundational contributions to the field of AI in finance.
 
-
 ## License and Disclaimer
 
 This project is licensed under the MIT License. This repository contains academic research code intended for educational purposes only. Nothing herein constitutes financial advice or trading recommendations. The trading strategies and analyses are experimental in nature and have not been validated for real-world trading. Users should be aware that trading involves substantial risk of loss and should always consult financial professionals before making investment decisions.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=ivebotunac/PrimoGPT&type=Date)](https://www.star-history.com/#ivebotunac/PrimoGPT&Date)
